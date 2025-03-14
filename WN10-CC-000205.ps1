@@ -12,7 +12,7 @@ or "Enhanced" (2) if Windows 10 v1709 or later is used and Windows Analytics req
     Version         : 1.0
     CVEs            : N/A
     Plugin IDs      : N/A
-    STIG-ID         : STIG-ID-WN10-CC-000205
+    STIG-ID         : WN10-CC-000205
 
 .TESTED ON
     Date(s) Tested  : 
