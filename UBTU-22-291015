@@ -3,13 +3,13 @@
 # STIG ID: UBTU-22-291015
 # Description: Disable all wireless network adapters.
 # Severity: medium
-.NOTES
-  Author          : David N.
-  LinkedIn        : N/A
-  GitHub          : github.com/davidn-works
-  Date Created    : 2025-03-19
-  Last Modified   : 2025-03-19
-  Version         : 1.1
+#.NOTES
+#  Author          : David N.
+#  LinkedIn        : N/A
+#  GitHub          : github.com/davidn-works
+#  Date Created    : 2025-03-19
+#  Last Modified   : 2025-03-19
+#  Version         : 1.1
 
 # Check if wireless interfaces exist.  If none exist, the STIG is Not Applicable.
 if [[ ! -f /proc/net/wireless ]]; then
