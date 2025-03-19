@@ -1,0 +1,70 @@
+#!/bin/bash
+
+# STIG ID: UBTU-22-291015
+# Description: Disable all wireless network adapters.
+# Severity: medium
+.NOTES
+  Author          : David N.
+  LinkedIn        : N/A
+  GitHub          : github.com/davidn-works
+  Date Created    : 2025-03-19
+  Last Modified   : 2025-03-19
+  Version         : 1.1
+
+# Check if wireless interfaces exist.  If none exist, the STIG is Not Applicable.
+if [[ ! -f /proc/net/wireless ]]; then
+  echo "No wireless interfaces found.  This STIG is Not Applicable."
+  exit 0
+fi
+
+wireless_interfaces=$(awk '$1 ~ /:/ {gsub(":","",$1); print $1}' /proc/net/wireless | tr '\n' ' ')
+
+# Check if any wireless interfaces are present.
+if [[ -z "$wireless_interfaces" ]]; then
+  echo "No wireless interfaces found. This STIG is Not Applicable."
+  exit 0
+fi
+
+echo "Wireless interfaces found: $wireless_interfaces"
+
+# Iterate through each wireless interface.
+for interface in $wireless_interfaces; do
+  echo "Processing interface: $interface"
+
+  # Find the module name for the interface.
+  module=$(basename $(readlink -f /sys/class/net/"$interface"/device/driver))
+
+  if [[ -z "$module" ]]; then
+    echo "ERROR: Could not determine module for interface: $interface"
+    continue  # Continue to the next interface, don't exit
+  fi
+
+  echo "Module for $interface: $module"
+
+  # Blacklist the module.
+  echo "install $module /bin/false" | sudo tee -a /etc/modprobe.d/stig.conf > /dev/null
+
+  # Remove the module.
+  sudo modprobe -r "$module" 2>&1 | tee -a /tmp/stig_wireless_modprobe.log
+
+  # Bring down the interface.  Use ip link set instead of ifdown.
+  sudo ip link set "$interface" down
+
+  echo "Interface $interface disabled and module $module blacklisted."
+done
+
+
+# Optional:  Additional check to ensure interfaces are down.
+sleep 2 # give the system a few seconds to apply changes.
+
+wireless_interfaces_up=$(ip link show | grep -B 2 -A 2 'UP' |  awk '$1 ~ /:/ {gsub(":","",$1); print $1}' | tr '\n' ' ')
+for i in $wireless_interfaces_up; do
+  if [[ "$wireless_interfaces" == *"$i"* ]];
+  then
+    echo "Warning: Interface $i still appears to be up."
+  fi
+done
+
+echo "Wireless interface disabling complete."
+
+exit 0
